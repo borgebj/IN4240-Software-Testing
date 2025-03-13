@@ -9,6 +9,7 @@ test.describe('testing factorial calculator', async () => {
         let input = '4';
         let expectedAnswer = '24';
         
+        await page.waitForTimeout(1500);
         await page.locator('#number').fill(input);
         await page.waitForTimeout(1500);
         await page.locator('.btn').click();
@@ -16,6 +17,20 @@ test.describe('testing factorial calculator', async () => {
 
         await expect(page.locator('#resultDiv'))
         .toContainText(`The factorial of ${input} is: ${expectedAnswer}`);
+    })
+
+    test('tests with invalid integer', async({page}) => {
+        let input = '4.5';
+        let expectedAnswer = 'Please enter an integer';
+        
+        await page.waitForTimeout(1500);
+        await page.locator('#number').fill(input);
+        await page.waitForTimeout(1500);
+        await page.locator('.btn').click();
+        await page.waitForTimeout(1500);
+
+        await expect(page.locator('#resultDiv'))
+        .toContainText(`${expectedAnswer}`);
     })
 
 
