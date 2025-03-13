@@ -1,0 +1,22 @@
+{
+  "name": "in4240-software-testing",
+  "version": "1.0.0",
+  "description": "For obliger osv",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/borgebj/IN4240-Software-Testing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/borgebj/IN4240-Software-Testing/issues"
+  },
+  "homepage": "https://github.com/borgebj/IN4240-Software-Testing#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^22.13.10"
+  }
+}
