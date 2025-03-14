@@ -35,19 +35,15 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    {
+/*    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
+    },*/
 
     {
-      name: 'brave',
-      use: { ...devices['Desktop Brave'] },
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
     },
-    {
-      name: 'brave',
-      use: { channel: 'brave' },
-    }
 
     /*
     {
