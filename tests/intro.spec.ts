@@ -8,7 +8,7 @@ test.describe('testing factorial calculator', async () => {
     test('tests with valid integer 4', async({page}) => {
         let input = '4';
         let expectedAnswer = '24';
-        
+
         await page.waitForTimeout(1500);
         await page.locator('#number').fill(input);
         await page.waitForTimeout(1500);
