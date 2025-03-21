@@ -17,17 +17,17 @@ test.describe('testing parabank', async () => {
         let expectedParTwo = `A Customer Care Representative will be contacting you.`;
 
         // Fills input-fields
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
         await page.locator('#name').fill(name);
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
         await page.locator('#email').fill(email);
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
         await page.locator('#phone').fill(phone);
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
         await page.locator('#message').fill(message);
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
         await page.locator('.button', { hasText: 'Send to Customer Care' }).click();
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(1000);
 
         // Locates and checks results
         const paragraphs = page.locator("#rightPanel p");
