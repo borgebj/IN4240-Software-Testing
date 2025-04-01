@@ -1,9 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
-import {log} from "util";
+
 
 // Registers account for temporary usage, usually done before tests (Due to how parabank testing website is made)
 async function register(page: Page, all: string) {
-    // goes to register
     await page.locator('#loginPanel').locator('a:has-text("Register")').click();
 
     const fields = [
@@ -20,26 +19,32 @@ async function register(page: Page, all: string) {
         'repeatedPassword'
     ];
 
-    await page.locator(".input[name='customer.firstName']").fill(all);
-
     // Enters values
     for (const field of fields) {
         await page.locator(`.input[name='${field}']`).fill(all);
     }
+
     // Register
     await page.locator(".button[value='Register']").click();
 
-    // Check for the username error message
-    const usernameError = await page.locator('.error', { hasText: "This username already exists."});
+    // Check for error after registering
+    const error = page.locator('.error');
 
-    // skips log out if already registered
-    if (usernameError) {
-        return;
+    try {
+        await error.waitFor({ state: 'attached', timeout: 2000 });
+
+        // If error, stop test
+        if (await error.isVisible()) {
+            return;
+        }
+    } catch (e) { 
+        // No error, finish registration
     }
 
-    // log out
+    // Log out
     await page.locator('#leftPanel').locator('a:has-text("Log Out")').click();
 }
+
 
 // Logs inn by finding login elements and entering info
 async function login(page: Page, name: string, pswd: string) {
@@ -52,73 +57,87 @@ async function login(page: Page, name: string, pswd: string) {
 // for logging out
 async function logout(page: Page) {
     await page.locator('#leftPanel').locator('a', { hasText: "Log Out" }).click();
-    await page.waitForTimeout(1000);
 }
+
+
 
 test.describe('Testing Parabank', () => {
 
+    // User info
     let name = 'ken';
     let passwd = 'ken';
 
+
     // NB!   Registering MUST be done due to how the website works !
+    // (cant be done in the beforeAll function, as it may sometime be reset)
     test.beforeEach(async ({ page }) => {
         await page.goto('https://parabank.parasoft.com/parabank/index.htm');
-        await register(page, name);
-        await page.waitForTimeout(1000); // waits for 1 second
-        await login(page, name, passwd);
 
+        await register(page, name);
+        await login(page, name, passwd);
     });
+
 
     // test 1
-    test('Verify admin privileges', async({ page }) => {
-        await page.waitForTimeout(1000);
-        await page.locator('.leftmenu li:last-child').click();
-        await page.waitForTimeout(1000);
-
-        // Press the “CLEAN” button under the database section.
-        await page.locator('.button', { hasText: 'Clean' }).click();
-        await page.waitForTimeout(1000);
-
-        const adminHeader = page.locator('#rightPanel h1');
-        const adminText = page.locator('#rightPanel p');
-
-        // checks we are in correct section
-        await expect(adminHeader).toContainText("Administration");
-
-        // Checks database is cleansed
-        const text = await adminText.textContent();
-        await expect(text.trim()).toContain("Database Cleaned");       // This is 'wrong' but asserts true here to continue
+    test('Verify login feature', async ({ page }) => {
+        // Log out first to ensure the test starts from a logged-out state
+        await logout(page);
+    
+        // Perform login
+        await login(page, name, passwd);
+    
+        // Verify login was successful
+    
+        // Check the sidebar title
+        const sideTitle = page.locator('#leftPanel h2:has-text("Account Services")');
+        await expect(sideTitle).toBeVisible();
+    
+        // Check for the first sidebar element
+        const sideElement = page.locator('#leftPanel ul li a:has-text("Open New Account")');
+        await expect(sideElement).toBeVisible();
     });
+
+
 
     // test 2
-    test('Verify login feature', async({ page }) => {
-        await page.waitForTimeout(1000);
+    test('Verify admin privileges', async ({ page }) => {
+        
+        // Click last item in left menu (Admin section)
+        await page.locator('.leftmenu li:last-child').click();
+    
+        // Press the "CLEAN" button under the database section
+        await page.locator('.button:has-text("Clean")').click();
+    
+        const adminHeader = page.locator('#rightPanel h1');
+        const adminText = page.locator('#rightPanel p');
+    
+        // Checks if we are in the correct section
+        await expect(adminHeader).toContainText("Administration");
+    
+        // Ensure database is cleaned
+        const text = await adminText.textContent();
+        if (text) {
+            expect(text.trim()).toContain("Database Cleaned");
+        }
+    });    
 
-        // Verify login successful:
-        // correct sidebar
-        const sidebar = page.locator("#leftPanel");
-        const sidelist = sidebar.locator("li");
 
-        await expect(sidebar.locator("h2")).toContainText("Account Services");
-        await expect(sidelist.nth(0)).toContainText("Open New Account");
-    });
 
     // test 3
     test('Verify platform navigation', async({ page }) => {
-        await page.waitForTimeout(1000);
 
         // 1. Navigate to the front page. Can be done by clicking on the PARA BANK banner at the top.
         await page.locator('.logo').click()
-        await page.waitForTimeout(1000);
 
         // 2. Press the middle orange button on the upper right side of the page.
         await page.locator('.aboutus').click()
-        await page.waitForTimeout(1000);
 
         // check if on correct page
         await expect(page).toHaveURL('https://parabank.parasoft.com/parabank/about.htm');
         await expect(page.locator(".title")).toContainText("ParaSoft Demo Website");
     });
+
+
 
     // log out
     test.afterEach(async ({ page }) => {
